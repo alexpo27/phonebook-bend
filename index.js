@@ -31,7 +31,7 @@ app.use(morgan(':getBody'))
 
 
 app.get('/', (req,res) => {
-    res.send('<h1>Hello world!</h1>')
+    console.log('Frontend Loaded!!!!!')
 })
 
 app.get('/api/persons', (req,res) => {
