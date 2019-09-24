@@ -20,6 +20,7 @@ let persons = [
 app.use(bodyParser.json())
 app.use(morgan('tiny'))
 app.use(cors())
+app.use(express.static('build'))
 
 morgan.token('getBody', (req,res) => {
     if(req.method === 'POST') {
