@@ -6,19 +6,6 @@ const morgan = require('morgan')
 const cors = require('cors')
 const Person = require('./models/person')
 
-let persons = [
-    {
-      "name": "Anna Balo",
-      "number": "123456",
-      "id": 3
-    },
-    {
-      "name": "Clau Ghenosu",
-      "number": "666666",
-      "id": 4
-    }
-  ]
-
 app.use(bodyParser.json())
 app.use(morgan('tiny'))
 app.use(cors())
@@ -43,18 +30,25 @@ app.get('/api/persons', (req,res) => {
 })
 
 app.get('/api/persons/:id', (req,res) => {
-    const id = Number(req.params.id)
-    const person = persons.find(person => person.id === id)
-    if(person) {
-    res.json(person)
-    } else {
-        res.status(404).end()
-    }
+    Person.findById(req.params.id)
+        .then(pers => {
+            if(pers) {
+                res.json(pers.toJSON())
+            } else {
+                res.status(404).end()
+            }
+        })
+        .catch(error => {
+            console.log(error)
+            res.status(400).end({ error: 'malformatted id' })
+        })
 })
 
 app.get('/api/info', (req,res) => {
-    let d = new Date()
-    res.send(`Phonebook has info for ${persons.length} people.<br>${d}`)
+    Person.find({}).then(persons => {
+        let d = new Date()
+        res.send(`Phonebook has info for ${persons.length} people.<br>${d}`)
+    })
 })
 
 app.delete('/api/persons/:id',(req,res) => {
@@ -65,10 +59,20 @@ app.delete('/api/persons/:id',(req,res) => {
 })
 
 app.post('/api/persons',(req,res) => {
-    const person = req.body
-    person.id = Math.floor(Math.random() * 500)
-    persons.push(person)
-    res.json(person)
+    const body = req.body
+
+    if(!(body.name || body.number)) {
+        return res.status(400).json({ error: 'content missing' })
+    }
+
+    const person = new Person({
+        name: body.name,
+        number: body.number
+    })
+
+    person.save().then(savedPerson => {
+        res.json(savedPerson.toJSON)
+    })
 })
 
 const PORT = process.env.PORT
